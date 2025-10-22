@@ -1,0 +1,21 @@
+:root {
+}
+
+body {
+  overflow: hidden;
+  background: #111;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* .upload {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+}
+.upload-button {
+  padding: 5px 10px;
+} */
