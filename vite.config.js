@@ -3,7 +3,7 @@ import glslify from 'rollup-plugin-glslify';
 // import autoprefixer from "autoprefixer";
 
 export default defineConfig({
-  base: "/demo_slide/01/",
+  base: "/",
   root: "./src",
   build: {
     outDir: "../dist",
