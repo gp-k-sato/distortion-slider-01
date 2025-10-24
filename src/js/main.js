@@ -51,10 +51,19 @@ async function init(){
 
   //テクスチャ
   const loader = new THREE.TextureLoader();
-  const texture01 = await loader.loadAsync(img01);
-  const texture02 = await loader.loadAsync(img02);
-  const texture03 = await loader.loadAsync(img03);
-  const texture04 = await loader.loadAsync(img04);
+  
+  // スライド用のテクスチャ配列
+  const slideImages = [img01, img02, img03, img04];
+  const slideTextures = [];
+  for (let i = 0; i < slideImages.length; i++) {
+    slideTextures.push(await loader.loadAsync(slideImages[i]));
+  }
+  
+  // 後方互換性のためのエイリアス
+  const texture01 = slideTextures[0];
+  const texture02 = slideTextures[1];
+  const texture03 = slideTextures[2];
+  const texture04 = slideTextures[3];
 
   const textureDisp = await loader.loadAsync(imgDisp1);
 
@@ -183,6 +192,9 @@ async function init(){
 
 
 
+  // 現在のスライドインデックス管理
+  let currentSlideIndex = 0;
+  
   // タイムライン設定
   let timeline = gsap.timeline({ repeat: -1 });
 
@@ -190,48 +202,34 @@ async function init(){
   function updateTimeline() {
     timeline.kill();
     timeline = gsap.timeline({ repeat: -1 });
-
-    timeline.to(uniforms.dispFactor, {
-      value: 1.0,
-      duration: settings.duration,
-      delay: settings.delay,
-      ease: settings.ease,
-      onComplete: () => {
-        uniforms.texture1.value = texture02;
-        uniforms.texture2.value = texture03;
-        uniforms.dispFactor.value = 0.0;
-      },
-    }).to(uniforms.dispFactor, {
-      value: 1.0,
-      duration: settings.duration,
-      delay: settings.delay,
-      ease: settings.ease,
-      onComplete: () => {
-        uniforms.texture1.value = texture03;
-        uniforms.texture2.value = texture04;
-        uniforms.dispFactor.value = 0.0;
-      },
-    }).to(uniforms.dispFactor, {
-      value: 1.0,
-      duration: settings.duration,
-      delay: settings.delay,
-      ease: settings.ease,
-      onComplete: () => {
-        uniforms.texture1.value = texture04;
-        uniforms.texture2.value = texture01;
-        uniforms.dispFactor.value = 0.0;
-      },
-    }).to(uniforms.dispFactor, {
-      value: 1.0,
-      duration: settings.duration,
-      delay: settings.delay,
-      ease: settings.ease,
-      onComplete: () => {
-        uniforms.texture1.value = texture01;
-        uniforms.texture2.value = texture02;
-        uniforms.dispFactor.value = 0.0;
-      },
-    });
+    
+    // スライドの枚数が1枚以下の場合は何もしない
+    if (slideTextures.length <= 1) {
+      return;
+    }
+    
+    // 現在のインデックスをリセット
+    currentSlideIndex = 0;
+    
+    // 動的にスライドの枚数に応じてタイムラインを生成
+    for (let i = 0; i < slideTextures.length; i++) {
+      const currentIndex = i;
+      const nextIndex = (i + 1) % slideTextures.length;
+      
+      timeline.to(uniforms.dispFactor, {
+        value: 1.0,
+        duration: settings.duration,
+        delay: settings.delay,
+        ease: settings.ease,
+        onComplete: () => {
+          // 次のスライドに移動
+          currentSlideIndex = nextIndex;
+          uniforms.texture1.value = slideTextures[nextIndex];
+          uniforms.texture2.value = slideTextures[(nextIndex + 1) % slideTextures.length];
+          uniforms.dispFactor.value = 0.0;
+        },
+      });
+    }
   }
 
   updateTimeline();
